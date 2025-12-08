@@ -1,3 +1,4 @@
+// App.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Routes, Route, NavLink } from "react-router-dom";
@@ -5,7 +6,7 @@ import Swal from "sweetalert2";
 
 const API_BASE = "http://localhost:4000/api";
 
-/* ---------- SweetAlert2 toast helper (Bootstrap-like) ---------- */
+/* ---------- SweetAlert2 toast helper ---------- */
 const Toast = Swal.mixin({
   toast: true,
   position: "top-right",
@@ -36,7 +37,7 @@ const getDueClass = (dueDateStr) => {
 
   if (diffDays < 0) return "text-danger fw-semibold"; // overdue
   if (diffDays <= 3) return "text-warning fw-semibold"; // soon
-  return "text-success"; // normal
+  return "small fw-bold"; // normal
 };
 
 const getPriorityBadgeClass = (priority) => {
@@ -58,7 +59,6 @@ const getDueLabel = (dueDateStr) => {
   const today = new Date();
   const due = new Date(dueDateStr);
 
-  // normalize to midnight
   const todayMid = new Date(
     today.getFullYear(),
     today.getMonth(),
@@ -102,31 +102,33 @@ function HomePage({
   nextWeekCount,
   completedCount,
   completionRate,
+  onEditTask,
+  onDeleteTask,
 }) {
   return (
     <>
       {/* Stats row */}
       <div className="row g-3 mb-3">
         <div className="col-md-3">
-          <div className="card border-0 shadow-sm">
+          <div className="card border-0 shadow-sm stats-card">
             <div className="card-body py-2">
-              <div className="small stats-title">Overdue</div>
+              <div className="small stats-title"><strong>Overdue</strong></div>
               <div className="fw-bold text-danger fs-5">{overdueCount}</div>
             </div>
           </div>
         </div>
         <div className="col-md-3">
-          <div className="card border-0 shadow-sm">
+          <div className="card border-0 shadow-sm stats-card">
             <div className="card-body py-2">
-              <div className="small stats-title">Due in 7 days</div>
+              <div className="small stats-title"><strong>Due in 7 Days</strong></div>
               <div className="fw-bold text-warning fs-5">{nextWeekCount}</div>
             </div>
           </div>
         </div>
         <div className="col-md-3">
-          <div className="card border-0 shadow-sm">
+          <div className="card border-0 shadow-sm stats-card">
             <div className="card-body py-2">
-             <div className="small stats-title">Completed</div>
+              <div className="small stats-title"><strong>Completed</strong></div>
               <div className="fw-bold text-success fs-5">
                 {completedCount}
               </div>
@@ -134,25 +136,29 @@ function HomePage({
           </div>
         </div>
         <div className="col-md-3">
-          <div className="card border-0 shadow-sm">
+          <div className="card border-0 shadow-sm stats-card">
             <div className="card-body py-2">
-              <div className="small stats-title">Completion</div>
-              <div className="fw-bold fs-5">{completionRate}%</div>
+              <div className="small stats-title"><strong>Completion</strong></div>
+              <div className="fw-bold fs-5 stats-title">
+                {completionRate}%
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tasks card */}
-      <div className="card shadow-sm border-0">
+      <div className="card shadow-sm border-0 main-inner-card">
         <div className="card-header border-bottom d-flex align-items-center">
-          <h5 className="mb-0">Your Tasks</h5>
+          <h2 className="mb-0 text-light">My Tasks</h2>
 
           {/* Filters section */}
           <div className="ms-auto d-flex align-items-end gap-3">
             {/* Course Filter */}
             <div className="d-flex flex-column">
-              <label className="form-label small mb-0">Course</label>
+              <label className="form-label small mb-0 text-light">
+                <strong>Course</strong>
+              </label>
               <select
                 className="form-select form-select-sm"
                 style={{ width: "210px" }}
@@ -170,7 +176,9 @@ function HomePage({
 
             {/* Status Filter */}
             <div className="d-flex flex-column">
-              <label className="form-label small mb-0">Status</label>
+              <label className="form-label small mb-0 text-light">
+                <strong>Status</strong>
+              </label>
               <select
                 className="form-select form-select-sm"
                 style={{ width: "170px" }}
@@ -184,25 +192,26 @@ function HomePage({
               </select>
             </div>
 
-            <span className="small text-muted ms-2">
-              Total: {filteredTasks.length}
+            <span className="small text-light ms-2">
+              <strong>Total: {filteredTasks.length}</strong>
             </span>
           </div>
         </div>
 
         <div className="card-body p-0">
           <div className="table-responsive">
-            <table className="table table-striped table-hover align-middle mb-0">
-              <thead className="table-light">
+            <table className="table table-striped table-hover align-middle mb-0 table-dark-mode">
+              <thead className="table-head-dark">
                 <tr>
-                  <th style={{ width: "30%" }}>Course</th>
-                  <th style={{ width: "20%" }}>Title</th>
+                  <th style={{ width: "26%" }}>Course</th>
+                  <th style={{ width: "18%" }}>Title</th>
                   <th style={{ width: "10%" }}>Type</th>
                   <th style={{ width: "16%" }}>Due</th>
-                  <th style={{ width: "12%" }}>Status</th>
-                  <th style={{ width: "10%" }}>Priority</th>
-                  <th style={{ width: "8%" }}>Weight</th>
-                  <th style={{ width: "12%" }}>Submitted?</th>
+                  <th style={{ width: "10%" }}>Status</th>
+                  <th style={{ width: "8%" }}>Priority</th>
+                  <th style={{ width: "7%" }}>Weight</th>
+                  <th style={{ width: "9%" }}>Submitted?</th>
+                  <th style={{ width: "10%" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -211,15 +220,19 @@ function HomePage({
                   return (
                     <tr key={t.id} className={getRowClass(t)}>
                       <td>
-                        <div className="fw-semibold small">{t.course_code}</div>
-                        <div className="text-muted small">
+                        <div className="fw-semibold">
+                          {t.course_code}
+                        </div>
+                        <div className="small">
                           {t.course_name}
                         </div>
                       </td>
                       <td className="small">{t.title}</td>
                       <td className="small">{t.type}</td>
                       <td className={getDueClass(t.due_date)}>
-                        <div className="small">{t.due_date || "-"}</div>
+                        <div className="small">
+                          {t.due_date || "-"}
+                        </div>
                         {dueLabel && (
                           <span className={dueLabel.className}>
                             {dueLabel.text}
@@ -227,13 +240,16 @@ function HomePage({
                         )}
                       </td>
                       <td>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-secondary"
-                          onClick={() => onStatusClick(t)}
-                        >
+                       <button
+                        type="button"
+                        className="btn btn-sm"
+                        style={{ width: "120px" }}
+                        onClick={() => onStatusClick(t)}
+                      >
+
                           {t.status}
                         </button>
+
                       </td>
                       <td>
                         <span className={getPriorityBadgeClass(t.priority)}>
@@ -255,15 +271,53 @@ function HomePage({
                           <option>Yes</option>
                         </select>
                       </td>
+                      <td>
+                        <div className="btn-group btn-group-sm">
+                         <button
+                          type="button"
+                          className="btn"
+                          style={{
+                            backgroundColor: "#2629d9",
+                            color: "white",
+                            fontWeight: "bold",
+                            border: "1px solid white"
+                          }}
+                          onClick={() => onEditTask(t)}
+                        >
+                          Edit
+                        </button>
+
+                          <button
+                             type="button"
+                          className="btn"
+                          style={{
+                            backgroundColor: "#7c0416",
+                            color: "white",
+                            fontWeight: "bold",
+                            border: "1px solid white"
+                          }}
+                            onClick={() => onDeleteTask(t)}
+                          >
+                            Del
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
 
                 {filteredTasks.length === 0 && (
                   <tr>
-                    <td colSpan="8" className="text-center py-4 text-muted">
-                      No tasks yet. Go to <strong>Add Task</strong> page to add
-                      some 👆
+                    <td colSpan="9" className="text-center py-4">
+                      <strong>No tasks yet! Go to{" "}
+                      <NavLink
+                        to="/tasks"
+                        className="text-decoration-underline fw-semibold"
+                      >
+                        Add Task
+                      </NavLink>{" "}
+                      tab to add your tasks 👆
+                      </strong>
                     </td>
                   </tr>
                 )}
@@ -283,20 +337,22 @@ function CoursesPage({
   setNewCourse,
   handleAddCourse,
   handleDeleteCourse,
+  handleEditCourse,   // 👈 add this
   courseStats,
 }) {
   return (
     <div className="row g-4 justify-content-center">
-    <div className="col-lg-10 col-xl-8">
-
-        <div className="card shadow-sm border-0">
+      <div className="col-lg-10 col-xl-8">
+        <div className="card shadow-sm border-0 main-inner-card">
           <div className="card-header border-bottom">
-            <h5 className="mb-0">Courses</h5>
+            <h2 className="mb-0 text-light">Courses</h2>
           </div>
           <div className="card-body">
             <form className="mb-3" onSubmit={handleAddCourse}>
               <div className="mb-2">
-                <label className="form-label small">Course code</label>
+                <label className="form-label small text-light">
+                  <h4>Course code</h4>
+                </label>
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -308,7 +364,9 @@ function CoursesPage({
                 />
               </div>
               <div className="mb-2">
-                <label className="form-label small">Course name</label>
+                <label className="form-label small text-light">
+                  <h4>Course name</h4>
+                </label>
                 <input
                   type="text"
                   className="form-control form-control-sm"
@@ -319,23 +377,21 @@ function CoursesPage({
                   }
                 />
               </div>
-              <button
-                type="submit"
-                className="btn btn-sm btn-add w-100 mt-2"
-              >
-                Add Course
+              <button type="submit" className="btn btn-sm btn-add w-100 mt-2">
+                <h5>Add Course</h5>
               </button>
             </form>
 
             <hr />
 
             <div className="mb-2 small text-light-important">
-
-              Total courses: {courses.length}
+              <strong><h4>Total courses: {courses.length}</h4></strong>
             </div>
 
             <div>
-              <div className="small fw-semibold mb-1">Courses list</div>
+              <div className="small fw-semibold mb-1 text-light">
+              <h5>Course list</h5>
+              </div>
               <ul className="list-group list-group-flush small">
                 {courses.length === 0 && (
                   <li className="list-group-item px-0 py-1 text-muted">
@@ -357,17 +413,28 @@ function CoursesPage({
                       className="list-group-item d-flex flex-column px-5 py-3 courses-list-item"
                     >
                       <div className="d-flex justify-content-between align-items-center">
-                        <span>
-                          <span className="fw-semibold">{c.code}</span>{" "}
-                          <span className="text-muted">– {c.name}</span>
-                        </span>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-delete"
-                          onClick={() => handleDeleteCourse(c.id)}
-                        >
-                          Delete
-                        </button>
+                        <h6><span>
+                          <span className="fw-bold">{c.code}</span>{" "}
+                          <span className="meduim fw-semibold">– {c.name}</span>
+                        </span></h6>
+                        <div className="d-flex gap-2">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-success"
+                            onClick={() => handleEditCourse(c)}
+                          >
+                            <h7>Edit</h7>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-delete"
+                            onClick={() => handleDeleteCourse(c.id)}
+                          >
+                            <h7>Delete</h7>
+                          </button>
+                      </div>
+
                       </div>
                       <div className="small text-muted mt-1">
                         {stats.completed}/{stats.total} tasks completed
@@ -396,15 +463,17 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
   return (
     <div className="row g-4 justify-content-center">
       <div className="col-lg-8">
-        <div className="card shadow-sm border-0">
+        <div className="card shadow-sm border-0 main-inner-card">
           <div className="card-header border-bottom d-flex align-items-center">
-            <h5 className="mb-0">Add Task</h5>
+            <h2 className="mb-0 text-light">Add Task</h2>
           </div>
           <div className="card-body">
             <form onSubmit={handleAddTask}>
               <div className="row g-3">
                 <div className="col-md-4">
-                  <label className="form-label small">Course</label>
+                  <label className="form-label small text-light">
+                    <h5>Course</h5>
+                  </label>
                   <select
                     className="form-select form-select-sm"
                     value={newTask.course_id}
@@ -426,10 +495,12 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
                 </div>
 
                 <div className="col-md-4">
-                  <label className="form-label small">Title</label>
+                  <label className="form-label small text-light">
+                    <h5>Title</h5>
+                  </label>
                   <input
                     type="text"
-                    className="form-control form-control-sm"
+                    className="form-control form-control-sm" placeholder="Example: Assignment 1"
                     value={newTask.title}
                     onChange={(e) =>
                       setNewTask({ ...newTask, title: e.target.value })
@@ -439,7 +510,9 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
                 </div>
 
                 <div className="col-md-4">
-                  <label className="form-label small">Type</label>
+                  <label className="form-label small text-light">
+                    <h5>Type</h5>
+                  </label>
                   <select
                     className="form-select form-select-sm"
                     value={newTask.type}
@@ -455,7 +528,9 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
                 </div>
 
                 <div className="col-md-3">
-                  <label className="form-label small">Due date</label>
+                  <label className="form-label small text-light">
+                   <h5> Due date</h5>
+                  </label>
                   <input
                     type="date"
                     className="form-control form-control-sm"
@@ -471,7 +546,9 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
                 </div>
 
                 <div className="col-md-3">
-                  <label className="form-label small">Status</label>
+                  <label className="form-label small text-light">
+                    <h5>Status</h5>
+                  </label>
                   <select
                     className="form-select form-select-sm"
                     value={newTask.status}
@@ -486,7 +563,9 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
                 </div>
 
                 <div className="col-md-3">
-                  <label className="form-label small">Priority</label>
+                  <label className="form-label small text-light">
+                    <h5>Priority</h5>
+                  </label>
                   <select
                     className="form-select form-select-sm"
                     value={newTask.priority}
@@ -501,12 +580,15 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
                 </div>
 
                 <div className="col-md-3">
-                  <label className="form-label small">Weight (%)</label>
+                  <label className="form-label small text-light">
+                   <h5> Weight (%)</h5>
+                  </label>
                   <input
                     type="number"
                     className="form-control form-control-sm"
                     min="0"
                     max="100"
+                    placeholder="Example: 20"
                     value={newTask.weight}
                     onChange={(e) =>
                       setNewTask({ ...newTask, weight: e.target.value })
@@ -515,9 +597,11 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
                 </div>
 
                 <div className="col-md-3">
-                  <label className="form-label small">Is Submitted?</label>
+                  <label className="form-label small text-light">
+                  <h5>  Is Submitted?</h5>
+                  </label>
                   <select
-                    className="form-select form-select-sm"
+                    className="form-select form-select-sm is-submitted-select"
                     value={newTask.is_submitted}
                     onChange={(e) =>
                       setNewTask({
@@ -532,7 +616,9 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
                 </div>
 
                 <div className="col-md-9">
-                  <label className="form-label small">Notes</label>
+                  <label className="form-label small text-light">
+                    <h5> Notes</h5>
+                  </label>
                   <textarea
                     className="form-control form-control-sm"
                     rows="2"
@@ -540,6 +626,7 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
                     onChange={(e) =>
                       setNewTask({ ...newTask, notes: e.target.value })
                     }
+                  
                   />
                 </div>
 
@@ -548,7 +635,7 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
                     type="submit"
                     className="btn btn-add btn-sm w-100 mt-1"
                   >
-                    Add Task
+                    <h5>Add Task</h5>
                   </button>
                 </div>
               </div>
@@ -617,12 +704,8 @@ function App() {
 
   /* ---------- Derived stats ---------- */
 
-    /* ---------- Derived stats ---------- */
-
   const msPerDay = 1000 * 60 * 60 * 24;
   const now = new Date();
-
-  // normalize "today" to midnight (no time component)
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   const overdueCount = tasks.filter((t) => {
@@ -630,7 +713,6 @@ function App() {
     const d = new Date(t.due_date);
     const dueMid = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const diffDays = Math.round((dueMid - today) / msPerDay);
-    // negative = in the past
     return diffDays < 0 && t.status !== "Completed";
   }).length;
 
@@ -639,7 +721,6 @@ function App() {
     const d = new Date(t.due_date);
     const dueMid = new Date(d.getFullYear(), d.getMonth(), d.getDate());
     const diffDays = Math.round((dueMid - today) / msPerDay);
-    // 0–7 days from today
     return diffDays >= 0 && diffDays <= 7 && t.status !== "Completed";
   }).length;
 
@@ -655,7 +736,6 @@ function App() {
     if (t.status === "Completed") acc[t.course_id].completed += 1;
     return acc;
   }, {});
-
 
   /* ---------- CRUD with SweetAlert toasts ---------- */
 
@@ -711,6 +791,49 @@ function App() {
     }
   };
 
+  const handleEditCourse = async (course) => {
+  const { value: formValues } = await Swal.fire({
+    title: "Edit Course",
+    html: `
+      <input id="swal-course-code" class="swal2-input" placeholder="Course code" value="${course.code}">
+      <input id="swal-course-name" class="swal2-input" placeholder="Course name" value="${course.name}">
+    `,
+    showCancelButton: true,
+    confirmButtonText: "Save",
+    cancelButtonText: "Cancel",
+    confirmButtonColor: "#28a745",   // green Save
+    focusConfirm: false,
+    preConfirm: () => {
+      const code = document.getElementById("swal-course-code").value.trim();
+      const name = document.getElementById("swal-course-name").value.trim();
+
+      if (!code || !name) {
+        Swal.showValidationMessage("Code and name are required");
+        return;
+      }
+      return { code, name };
+    }
+  });
+
+  if (!formValues) return;
+
+  const { code, name } = formValues;
+
+  // Update on server
+  try {
+    await axios.put(`${API_BASE}/courses/${course.id}`, { code, name });
+
+    // Refresh
+    fetchCourses();
+    fetchTasks(selectedCourseId || null);
+
+    Toast.fire({ icon: "success", title: "Course updated" });
+  } catch {
+    Toast.fire({ icon: "error", title: "Failed to update course" });
+  }
+};
+
+
   const handleAddTask = async (e) => {
     e.preventDefault();
     if (!newTask.course_id || !newTask.title || !newTask.due_date) {
@@ -762,13 +885,14 @@ function App() {
 
     const payload = {
       course_id: task.course_id,
-      title: task.title,
-      type: task.type,
-      due_date: task.due_date,
+      title: updatedFields.title ?? task.title,
+      type: updatedFields.type ?? task.type,
+      due_date: updatedFields.due_date ?? task.due_date,
       status: updatedFields.status ?? task.status,
       priority: task.priority,
       weight: task.weight,
-      submission_link: updatedFields.submission_link ?? task.submission_link,
+      submission_link:
+        updatedFields.submission_link ?? task.submission_link,
       notes: task.notes,
     };
 
@@ -797,8 +921,6 @@ function App() {
       cancelButtonText: "Cancel",
       confirmButtonColor: "#0d6efd",
       cancelButtonColor: "#6c757d",
-
-      // taller popup & select
       customClass: {
         popup: "swal-update-status-popup",
       },
@@ -825,20 +947,106 @@ function App() {
     await updateTaskOnServer(task.id, { submission_link: newValue });
   };
 
+  /* Edit task (title, type, due) */
+  const handleEditTask = async (task) => {
+    const { value: formValues } = await Swal.fire({
+      title: "Edit task",
+      html: `
+        <input id="swal-input-title" class="swal2-input" placeholder="Title" value="${task.title || ""}">
+        <select id="swal-input-type" class="swal2-select">
+          <option ${task.type === "Quiz" ? "selected" : ""}>Quiz</option>
+          <option ${task.type === "Assignment" ? "selected" : ""}>Assignment</option>
+          <option ${task.type === "Exam" ? "selected" : ""}>Exam</option>
+          <option ${task.type === "Group Project" ? "selected" : ""}>Group Project</option>
+        </select>
+        <input id="swal-input-due" type="date" class="swal2-input" value="${
+          task.due_date || ""
+        }">
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      cancelButtonText: "Cancel",
+      preConfirm: () => {
+        const title = document
+          .getElementById("swal-input-title")
+          .value.trim();
+        const type = document.getElementById("swal-input-type").value;
+        const due_date = document
+          .getElementById("swal-input-due")
+          .value.trim();
+
+        if (!title || !due_date) {
+          Swal.showValidationMessage("Title and due date are required");
+          return;
+        }
+
+        return { title, type, due_date };
+      },
+      customClass: {
+        popup: "swal-edit-task-popup",
+        confirmButton: "swal-save-btn",   // <-- ADD THIS
+        cancelButton: "swal-cancel-btn",  // optional
+      },
+    });
+
+    if (!formValues) return;
+
+    const { title, type, due_date } = formValues;
+
+    // optimistic update
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === task.id ? { ...t, title, type, due_date } : t
+      )
+    );
+
+    await updateTaskOnServer(task.id, { title, type, due_date });
+  };
+
+  /* Delete task */
+  const handleDeleteTask = async (task) => {
+    const result = await Swal.fire({
+      title: "Delete task?",
+      html: `<strong>${task.title}</strong><br><small>${task.course_code} – ${task.course_name}</small>`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#dc3545",
+      cancelButtonColor: "#6c757d",
+      focusCancel: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await axios.delete(`${API_BASE}/tasks/${task.id}`);
+      fetchTasks(selectedCourseId || null);
+      Toast.fire({ icon: "info", title: "Task deleted" });
+    } catch {
+      Toast.fire({ icon: "error", title: "Failed to delete task" });
+    }
+  };
+
   return (
     <div className="min-vh-100 d-flex justify-content-center align-items-start py-4 app-bg">
       <div className="container main-shell p-3">
         {/* Top bar + nav (separate from card) */}
         <header className="mb-3">
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <span className="fw-bold text-success fs-4">
+           <span
+              className="fw-bold fs-4"
+              style={{ color: "#FFD700" }} // gold
+            >
               Road to Success!
             </span>
-            <span className="text-muted small d-flex align-items-center gap-2">
+
+            <span className="small d-flex align-items-center gap-2 text-light-important">
               <span role="img" aria-label="calendar">
                 📅
               </span>
-              <span className="ms-auto small d-flex align-items-center gap-2 text-light-important">{todayStr}</span>
+              <span><strong className="fs-5">{todayStr}</strong></span>
             </span>
           </div>
 
@@ -852,7 +1060,7 @@ function App() {
                   "nav-link nav-pill " + (isActive ? "nav-pill-active" : "")
                 }
               >
-                My Tasks
+                Tasks
               </NavLink>
             </li>
             <li className="nav-item">
@@ -897,22 +1105,26 @@ function App() {
                   nextWeekCount={nextWeekCount}
                   completedCount={completedCount}
                   completionRate={completionRate}
+                  onEditTask={handleEditTask}
+                  onDeleteTask={handleDeleteTask}
                 />
               }
             />
-            <Route
-              path="/courses"
-              element={
-                <CoursesPage
-                  courses={courses}
-                  newCourse={newCourse}
-                  setNewCourse={setNewCourse}
-                  handleAddCourse={handleAddCourse}
-                  handleDeleteCourse={handleDeleteCourse}
-                  courseStats={courseStats}
-                />
-              }
-            />
+           <Route
+            path="/courses"
+            element={
+              <CoursesPage
+                courses={courses}
+                newCourse={newCourse}
+                setNewCourse={setNewCourse}
+                handleAddCourse={handleAddCourse}
+                handleDeleteCourse={handleDeleteCourse}
+                handleEditCourse={handleEditCourse} 
+                courseStats={courseStats}
+              />
+            }
+          />
+
             <Route
               path="/tasks"
               element={
@@ -927,7 +1139,7 @@ function App() {
           </Routes>
 
           <div className="text-center small mt-4 footer-text">
-            Nawriz Ibrahim © 2025
+          <strong><em>Nawriz Ibrahim © 2025</em></strong>
           </div>
         </div>
       </div>

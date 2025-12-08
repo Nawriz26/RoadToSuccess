@@ -64,11 +64,22 @@ body {
 }
 
 /* Dark red DELETE button */
-.btn-delete {
+.btn-delete{
   background-color: #7f1d1d;
   border-color: #7f1d1d;
   color: #fee2e2;
   font-weight: bold;
+  padding: 8px 20px !important;
+  border-radius: 6px !important;
+}
+
+.btn-success {
+  background-color: #14532d;
+  border-color: #14532d;
+  color: #f9fafb;
+  font-weight: bold;
+  padding: 8px 30px !important;
+  border-radius: 6px !important;
 }
 
 .btn-delete:hover,
@@ -137,4 +148,63 @@ body {
 }
 .courses-list-item {
   width: 100%;
+}
+.table-success {
+  --bs-table-bg: #14532d !important;          /* dark green */
+  --bs-table-color: #ffffff !important;       /* white text */
+
+  --bs-table-striped-bg: #166534 !important;  /* slightly lighter green */
+  --bs-table-striped-color: #ffffff !important;
+
+  --bs-table-active-bg: #14532d !important;
+  --bs-table-active-color: #ffffff !important;
+
+  --bs-table-hover-bg: #166534 !important;
+  --bs-table-hover-color: #ffffff !important;
+
+  
+}
+
+.table-success button {
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+.table-success button:hover {
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+  opacity: 0.9;
+}
+.swal-save-btn {
+  background-color: #15803d !important; /* green */
+  color: white !important;
+  font-weight: bold !important;
+  border: none !important;
+  padding: 8px 20px !important;
+  border-radius: 6px !important;
+}
+
+.swal-save-btn:hover {
+  background-color: #16a34a !important; /* lighter green hover */
+}
+.swal-cancel-btn {
+  background-color: #b91c1c !important; /* red */
+  color: white !important;
+  font-weight: bold !important;
+  border: none !important;
+  padding: 8px 20px !important;
+  border-radius: 6px !important;
+}
+
+.swal-cancel-btn:hover {
+  background-color: #dc2626 !important;
+}
+.form-select.form-select-sm.is-submitted-select {
+  background-color: #020617 !important;
+  color: #e5e7eb !important;
+  border-color: #ffffff !important;
+  padding-bottom: 25px !important;
+}
+.form-control.form-control-sm {
+ resize: none !important;
 }
