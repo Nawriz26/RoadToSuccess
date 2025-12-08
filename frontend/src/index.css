@@ -1,0 +1,140 @@
+/* Black background for whole app */
+body {
+  background-color: #000;
+}
+
+/* Wrapper */
+.app-bg {
+  background-color: #000;
+}
+
+/* Centered shell */
+.main-shell {
+  max-width: 1400px;
+}
+
+/* Dark main content card */
+.main-card {
+  background-color: #020617; /* near-black */
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid #1f2937;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
+  color: #e5e7eb;
+}
+
+/* Dark cards inside content */
+.main-card .card {
+  background-color: #030712;
+  border-color: #1f2937;
+  color: #e5e7eb;
+}
+
+.main-card .card-header {
+  background-color: #030712;
+  border-color: #1f2937;
+}
+
+/* Table dark header + zebra rows */
+.main-card .table thead.table-light {
+  background-color: #111827;
+  color: #e5e7eb;
+  border-color: #1f2937;
+  /* font-weight: bold; */
+}
+
+.main-card .table-striped > tbody > tr:nth-of-type(odd) {
+  --bs-table-accent-bg: #020617;
+}
+
+/* Dark green ADD button */
+.btn-add {
+  background-color: #14532d;
+  border-color: #14532d;
+  color: #f9fafb;
+  font-weight: bold;
+}
+
+.btn-add:hover,
+.btn-add:focus {
+  background-color: #166534;
+  border-color: forestgreen;
+  color: #ffffff;
+  
+}
+
+/* Dark red DELETE button */
+.btn-delete {
+  background-color: #7f1d1d;
+  border-color: #7f1d1d;
+  color: #fee2e2;
+  font-weight: bold;
+}
+
+.btn-delete:hover,
+.btn-delete:focus {
+  background-color: #991b1b;
+  border-color: #b91c1c;
+  color: #ffffff;
+}
+
+/* Pill / semi-circle nav tabs */
+.custom-nav-pills .nav-link.nav-pill {
+  border-radius: 9999px; /* full pill */
+  padding: 0.5rem 1.6rem;
+  background-color: #020617;
+  color: #e5e7eb;
+  border: 1px solid #1f2937;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.7);
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.custom-nav-pills .nav-link.nav-pill:hover {
+  background-color: #111827;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Active pill (semi-circle highlight) */
+.custom-nav-pills .nav-link.nav-pill.nav-pill-active {
+  background: radial-gradient(circle at 20% 0, #22c55e, #14532d);
+  color: #ffffff;
+  border-color: #16a34a;
+  box-shadow: 0 18px 30px rgba(34, 197, 94, 0.35);
+}
+
+/* Bigger status popup for SweetAlert */
+.swal-update-status-popup {
+  padding: 2.5rem 2.5rem 3rem 2.5rem;
+}
+
+.swal-update-status-popup .swal2-select {
+  height: 3rem;
+  font-size: 1rem;
+}
+/* Make date white */
+.navbar .text-muted,
+.nav-date,
+.text-light-important {
+  color: #ffffff !important;
+}
+
+/* Stats titles & numbers */
+.stats-title,
+.stats-number {
+  color: #ffffff !important;
+}
+
+/* Footer */
+.footer-text {
+  color: #ffffff !important;
+}
+
+/* Override all .text-muted inside dark mode container */
+.dark-mode .text-muted {
+  color: #ffffff !important;
+}
+.courses-list-item {
+  width: 100%;
+}
