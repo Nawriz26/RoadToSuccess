@@ -204,6 +204,26 @@ app.put('/api/tasks/:id', (req, res) => {
   );
 });
 
+
+app.put('/api/courses/:id', (req, res) => {
+  const { id } = req.params;
+  const { code, name } = req.body;
+
+  if (!code || !name) {
+    return res.status(400).json({ error: "Code and name required" });
+  }
+
+  db.run(
+    `UPDATE courses SET code = ?, name = ? WHERE id = ?`,
+    [code, name, id],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ updated: this.changes });
+    }
+  );
+});
+
+
 // Delete task
 app.delete('/api/tasks/:id', (req, res) => {
   const { id } = req.params;
