@@ -294,7 +294,7 @@ function HomePage({
               </label>
               <select
                 className="form-select form-select-sm"
-                style={{ width: "210px" }}
+                style={{ width: "270px" }}
                 value={selectedProgramFilter}
                 onChange={(e) => onProgramFilterChange(e.target.value)}
               >
@@ -314,7 +314,7 @@ function HomePage({
               </label>
               <select
                 className="form-select form-select-sm"
-                style={{ width: "210px" }}
+                style={{ width: "370px" }}
                 value={selectedCourseId}
                 onChange={(e) => onCourseFilterChange(e.target.value)}
               >
@@ -356,7 +356,7 @@ function HomePage({
             <table className="table table-striped table-hover align-middle mb-0 table-dark-mode">
               <thead className="table-head-dark">
                 <tr>
-                  <th style={{ width: "28%" }}>Course / Program</th>
+                  <th style={{ width: "50%" }}>Course / Program</th>
                   <th style={{ width: "18%" }}>Title</th>
                   <th style={{ width: "10%" }}>Type</th>
                   <th style={{ width: "16%" }}>Due</th>
@@ -375,11 +375,11 @@ function HomePage({
                       <td>
                         <div className="fw-semibold">
                           {/* Example: "Computer Science - CS 1111-01" */}
-                          {t.program_name
-                            ? `${t.program_name} - ${t.course_code}`
-                            : t.course_code}
+                          {t.course_code
+                            ? `${t.course_code} - ${t.course_name}`
+                            : t.course_name}
                         </div>
-                        <div className="small">{t.course_name}</div>
+                        <div className="small">{t.program_name}</div>
                       </td>
                       <td className="small">{t.title}</td>
                       <td className="small">{t.type}</td>
@@ -483,9 +483,8 @@ function HomePage({
   );
 }
 
-/* Courses page */
+/* Courses page: manage courses + progress, grouped by program */
 function CoursesPage({
-  programs,
   courses,
   newCourse,
   setNewCourse,
@@ -494,11 +493,15 @@ function CoursesPage({
   handleEditCourse,
   courseStats,
 }) {
-  // Map program_id -> program_name
-  const programMap = programs.reduce((acc, p) => {
-    acc[p.id] = p.name;
+  // Group courses by program_name
+  const groupedByProgram = courses.reduce((acc, c) => {
+    const key = c.program_name || "No Program / Other";
+    if (!acc[key]) acc[key] = [];
+    acc[key] = [...acc[key], c];
     return acc;
   }, {});
+
+  const hasCourses = courses.length > 0;
 
   return (
     <div className="row g-4 justify-content-center">
@@ -507,32 +510,10 @@ function CoursesPage({
           <div className="card-header border-bottom">
             <h2 className="mb-0 text-light">Courses</h2>
           </div>
-          <div className="card-body">
-            <form className="mb-3" onSubmit={handleAddCourse}>
-              <div className="mb-2">
-                <label className="form-label small text-light">
-                  <h4>Program</h4>
-                </label>
-                <select
-                  className="form-select form-select-sm"
-                  value={newCourse.program_id}
-                  onChange={(e) =>
-                    setNewCourse({
-                      ...newCourse,
-                      program_id: e.target.value,
-                    })
-                  }
-                  required
-                >
-                  <option value="">Select program</option>
-                  {programs.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
+          <div className="card-body">
+            {/* Add course form */}
+            <form className="mb-3" onSubmit={handleAddCourse}>
               <div className="mb-2">
                 <label className="form-label small text-light">
                   <h4>Course code</h4>
@@ -540,7 +521,7 @@ function CoursesPage({
                 <input
                   type="text"
                   className="form-control form-control-sm"
-                  placeholder="CS 1111-01"
+                  placeholder="COMP228"
                   value={newCourse.code}
                   onChange={(e) =>
                     setNewCourse({ ...newCourse, code: e.target.value })
@@ -554,7 +535,7 @@ function CoursesPage({
                 <input
                   type="text"
                   className="form-control form-control-sm"
-                  placeholder="Introduction to Computer Science"
+                  placeholder="Java Programming"
                   value={newCourse.name}
                   onChange={(e) =>
                     setNewCourse({ ...newCourse, name: e.target.value })
@@ -575,74 +556,92 @@ function CoursesPage({
             </div>
 
             <div>
-              <div className="small fw-semibold mb-1 text-light">
+              <div className="small fw-semibold mb-2 text-light">
                 <h5>Course list</h5>
               </div>
-              <ul className="list-group list-group-flush small">
-                {courses.length === 0 && (
-                  <li className="list-group-item px-0 py-1 text-muted">
-                    No courses yet.
-                  </li>
-                )}
-                {courses.map((c) => {
-                  const stats = courseStats[c.id] || {
-                    total: 0,
-                    completed: 0,
-                  };
-                  const pct =
-                    stats.total === 0
-                      ? 0
-                      : Math.round((stats.completed / stats.total) * 100);
-                  return (
-                    <li
-                      key={c.id}
-                      className="list-group-item d-flex flex-column px-5 py-3 courses-list-item"
-                    >
-                      <div className="d-flex justify-content-between align-items-center">
-                        <div>
-                          <h6 className="mb-1">
-                            <span className="fw-bold">{c.code}</span>{" "}
-                            <span className="meduim fw-semibold">
-                              – {c.name}
-                            </span>
-                          </h6>
-                          <div className="small text-muted">
-                            {programMap[c.program_id] ||
-                              "Program not set"}
-                          </div>
-                        </div>
-                        <div className="d-flex gap-2">
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-success"
-                            onClick={() => handleEditCourse(c)}
-                          >
-                            Edit
-                          </button>
 
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-delete"
-                            onClick={() => handleDeleteCourse(c.id)}
-                          >
-                            Delete
-                          </button>
-                        </div>
+              {!hasCourses && (
+                <div className="text-muted small">No courses yet.</div>
+              )}
+
+              {hasCourses &&
+                Object.entries(groupedByProgram).map(
+                  ([programName, programCourses]) => (
+                    <div key={programName} className="mb-4">
+                      {/* Program heading */}
+                      <div className="text-white fw-bold mb-2">
+                        {programName}
                       </div>
-                      <div className="small text-muted mt-1">
-                        {stats.completed}/{stats.total} tasks completed
-                      </div>
-                      <div className="progress" style={{ height: "4px" }}>
-                        <div
-                          className="progress-bar"
-                          role="progressbar"
-                          style={{ width: `${pct}%` }}
-                        ></div>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+
+                      <ul className="list-group list-group-flush small">
+                        {programCourses.map((c) => {
+                          const stats = courseStats[c.id] || {
+                            total: 0,
+                            completed: 0,
+                          };
+                          const pct =
+                            stats.total === 0
+                              ? 0
+                              : Math.round(
+                                  (stats.completed / stats.total) * 100
+                                );
+
+                          return (
+                            <li
+                              key={c.id}
+                              className="list-group-item d-flex flex-column px-5 py-3 courses-list-item"
+                            >
+                              <div className="d-flex justify-content-between align-items-center">
+                                <h6>
+                                  <span>
+                                    <span className="fw-bold">
+                                      {c.code}
+                                    </span>{" "}
+                                    <span className="medium fw-semibold">
+                                      – {c.name}
+                                    </span>
+                                  </span>
+                                </h6>
+
+                                <div className="d-flex gap-2">
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-dark text-white"
+                                    onClick={() => handleEditCourse(c)}
+                                  >
+                                    Edit
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    className="btn btn-sm btn-delete"
+                                    onClick={() => handleDeleteCourse(c.id)}
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="small text-muted mt-1">
+                                {stats.completed}/{stats.total} tasks completed
+                              </div>
+                              <div
+                                className="progress"
+                                style={{ height: "4px" }}
+                              >
+                                <div
+                                  className="progress-bar"
+                                  role="progressbar"
+                                  style={{ width: `${pct}%` }}
+                                ></div>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  )
+                )}
             </div>
           </div>
         </div>
@@ -650,6 +649,7 @@ function CoursesPage({
     </div>
   );
 }
+
 
 /* Add Task page */
 function AddTaskPage({ courses, newTask, setNewTask, handleAddTask }) {
@@ -668,7 +668,7 @@ function AddTaskPage({ courses, newTask, setNewTask, handleAddTask }) {
                     <h5>Course</h5>
                   </label>
                   <select
-                    className="form-select form-select-sm"
+                    className="form-select form-select-sm course-select"
                     value={newTask.course_id}
                     onChange={(e) =>
                       setNewTask({
@@ -686,14 +686,14 @@ function AddTaskPage({ courses, newTask, setNewTask, handleAddTask }) {
                     ))}
                   </select>
                 </div>
-
+                <div></div>
                 <div className="col-md-4">
                   <label className="form-label small text-light">
                     <h5>Title</h5>
                   </label>
                   <input
                     type="text"
-                    className="form-control form-control-sm"
+                    className="form-control form-control-sm course-title"
                     placeholder="Assignment 1"
                     value={newTask.title}
                     onChange={(e) =>
@@ -702,7 +702,7 @@ function AddTaskPage({ courses, newTask, setNewTask, handleAddTask }) {
                     required
                   />
                 </div>
-
+                <div></div>
                 <div className="col-md-4">
                   <label className="form-label small text-light">
                     <h5>Type</h5>
@@ -755,7 +755,7 @@ function AddTaskPage({ courses, newTask, setNewTask, handleAddTask }) {
                     <option>Completed</option>
                   </select>
                 </div>
-
+                      <div></div>
                 <div className="col-md-3">
                   <label className="form-label small text-light">
                     <h5>Priority</h5>
@@ -789,7 +789,7 @@ function AddTaskPage({ courses, newTask, setNewTask, handleAddTask }) {
                     }
                   />
                 </div>
-
+                      <div></div>
                 <div className="col-md-9">
                   <label className="form-label small text-light">
                     <h5>Notes</h5>
@@ -803,7 +803,7 @@ function AddTaskPage({ courses, newTask, setNewTask, handleAddTask }) {
                     }
                   />
                 </div>
-
+                    <div></div>
                 <div className="col-12">
                   <button
                     type="submit"

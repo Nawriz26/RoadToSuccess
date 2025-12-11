@@ -211,3 +211,7 @@ body {
  resize: none !important;
  width: 134% !important;
 }
+
+.form-select.form-select-sm.course-select, .form-control.form-control-sm.course-title{
+  width:140% !important;
+}
