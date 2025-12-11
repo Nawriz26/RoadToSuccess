@@ -205,6 +205,9 @@ body {
   border-color: #ffffff !important;
   padding-bottom: 25px !important;
 }
-.form-control.form-control-sm {
+
+
+.form-control.form-control-sm.notes{
  resize: none !important;
+ width: 134% !important;
 }

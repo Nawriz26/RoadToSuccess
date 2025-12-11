@@ -1,7 +1,6 @@
-// App.jsx
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Routes, Route, NavLink } from "react-router-dom";
+import { Routes, Route, NavLink, Navigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 const API_BASE = "http://localhost:4000/api";
@@ -88,7 +87,130 @@ const getDueLabel = (dueDateStr) => {
 
 /* ---------- Pages ---------- */
 
-/* Home: Your Tasks */
+/* Programs page */
+function ProgramsPage({
+  programs,
+  newProgram,
+  setNewProgram,
+  handleAddProgram,
+  handleEditProgram,
+  handleDeleteProgram,
+}) {
+  return (
+    <div className="row g-4 justify-content-center">
+      <div className="col-lg-10 col-xl-8">
+        <div className="card shadow-sm border-0 main-inner-card">
+          <div className="card-header border-bottom">
+            <h2 className="mb-0 text-light">Programs</h2>
+          </div>
+          <div className="card-body">
+            <form className="mb-3" onSubmit={handleAddProgram}>
+              <div className="mb-2">
+                <label className="form-label small text-light">
+                  <h4>Program name</h4>
+                </label>
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  placeholder="Computer Science"
+                  value={newProgram.name}
+                  onChange={(e) =>
+                    setNewProgram({ ...newProgram, name: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="mb-2">
+                <label className="form-label small text-light">
+                  <h4>College/University</h4>
+                </label>
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  placeholder="Conestoga College"
+                  value={newProgram.college}
+                  onChange={(e) =>
+                    setNewProgram({ ...newProgram, college: e.target.value })
+                  }
+                />
+              </div>
+              <div className="mb-2">
+                <label className="form-label small text-light">
+                  <h4>Semester</h4>
+                </label>
+                <input
+                  type="text"
+                  className="form-control form-control-sm"
+                  placeholder="Fall 2025"
+                  value={newProgram.semester}
+                  onChange={(e) =>
+                    setNewProgram({ ...newProgram, semester: e.target.value })
+                  }
+                />
+              </div>
+
+              <button type="submit" className="btn btn-sm btn-add w-100 mt-2">
+                <h5>Add Program</h5>
+              </button>
+            </form>
+
+            <hr />
+
+            <div className="mb-2 small text-light-important">
+              <strong>
+                <h4>Total programs: {programs.length}</h4>
+              </strong>
+            </div>
+
+            <ul className="list-group list-group-flush small">
+              {programs.length === 0 && (
+                <li className="list-group-item px-0 py-1 text-muted">
+                  No programs yet.
+                </li>
+              )}
+              {programs.map((p) => (
+                <li
+                  key={p.id}
+                  className="list-group-item d-flex flex-column px-5 py-3 courses-list-item"
+                >
+                  <div className="d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 className="mb-1">
+                        <span className="fw-bold">{p.name}</span>
+                      </h6>
+                      <div className="small text-muted">
+                        {p.college || "College not set"}
+                        {p.semester ? ` • ${p.semester}` : ""}
+                      </div>
+                    </div>
+                    <div className="d-flex gap-2">
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-success"
+                        onClick={() => handleEditProgram(p)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-delete"
+                        onClick={() => handleDeleteProgram(p.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* Home: My Tasks */
 function HomePage({
   filteredTasks,
   statusFilter,
@@ -96,6 +218,9 @@ function HomePage({
   onStatusClick,
   handleRowSubmittedChange,
   courses,
+  programs,
+  selectedProgramFilter,
+  onProgramFilterChange,
   selectedCourseId,
   onCourseFilterChange,
   overdueCount,
@@ -112,7 +237,9 @@ function HomePage({
         <div className="col-md-3">
           <div className="card border-0 shadow-sm stats-card">
             <div className="card-body py-2">
-              <div className="small stats-title"><strong>Overdue</strong></div>
+              <div className="small stats-title">
+                <strong>Overdue</strong>
+              </div>
               <div className="fw-bold text-danger fs-5">{overdueCount}</div>
             </div>
           </div>
@@ -120,7 +247,9 @@ function HomePage({
         <div className="col-md-3">
           <div className="card border-0 shadow-sm stats-card">
             <div className="card-body py-2">
-              <div className="small stats-title"><strong>Due in 7 Days</strong></div>
+              <div className="small stats-title">
+                <strong>Due in 7 Days</strong>
+              </div>
               <div className="fw-bold text-warning fs-5">{nextWeekCount}</div>
             </div>
           </div>
@@ -128,7 +257,9 @@ function HomePage({
         <div className="col-md-3">
           <div className="card border-0 shadow-sm stats-card">
             <div className="card-body py-2">
-              <div className="small stats-title"><strong>Completed</strong></div>
+              <div className="small stats-title">
+                <strong>Completed</strong>
+              </div>
               <div className="fw-bold text-success fs-5">
                 {completedCount}
               </div>
@@ -138,7 +269,9 @@ function HomePage({
         <div className="col-md-3">
           <div className="card border-0 shadow-sm stats-card">
             <div className="card-body py-2">
-              <div className="small stats-title"><strong>Completion</strong></div>
+              <div className="small stats-title">
+                <strong>Completion</strong>
+              </div>
               <div className="fw-bold fs-5 stats-title">
                 {completionRate}%
               </div>
@@ -154,6 +287,26 @@ function HomePage({
 
           {/* Filters section */}
           <div className="ms-auto d-flex align-items-end gap-3">
+            {/* Program Filter */}
+            <div className="d-flex flex-column">
+              <label className="form-label small mb-0 text-light">
+                <strong>Program</strong>
+              </label>
+              <select
+                className="form-select form-select-sm"
+                style={{ width: "210px" }}
+                value={selectedProgramFilter}
+                onChange={(e) => onProgramFilterChange(e.target.value)}
+              >
+                <option value="">All Programs</option>
+                {programs.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Course Filter */}
             <div className="d-flex flex-column">
               <label className="form-label small mb-0 text-light">
@@ -203,7 +356,7 @@ function HomePage({
             <table className="table table-striped table-hover align-middle mb-0 table-dark-mode">
               <thead className="table-head-dark">
                 <tr>
-                  <th style={{ width: "26%" }}>Course</th>
+                  <th style={{ width: "28%" }}>Course / Program</th>
                   <th style={{ width: "18%" }}>Title</th>
                   <th style={{ width: "10%" }}>Type</th>
                   <th style={{ width: "16%" }}>Due</th>
@@ -221,11 +374,12 @@ function HomePage({
                     <tr key={t.id} className={getRowClass(t)}>
                       <td>
                         <div className="fw-semibold">
-                          {t.course_code}
+                          {/* Example: "Computer Science - CS 1111-01" */}
+                          {t.program_name
+                            ? `${t.program_name} - ${t.course_code}`
+                            : t.course_code}
                         </div>
-                        <div className="small">
-                          {t.course_name}
-                        </div>
+                        <div className="small">{t.course_name}</div>
                       </td>
                       <td className="small">{t.title}</td>
                       <td className="small">{t.type}</td>
@@ -240,16 +394,14 @@ function HomePage({
                         )}
                       </td>
                       <td>
-                       <button
-                        type="button"
-                        className="btn btn-sm"
-                        style={{ width: "120px" }}
-                        onClick={() => onStatusClick(t)}
-                      >
-
+                        <button
+                          type="button"
+                          className="btn btn-sm"
+                          style={{ width: "120px" }}
+                          onClick={() => onStatusClick(t)}
+                        >
                           {t.status}
                         </button>
-
                       </td>
                       <td>
                         <span className={getPriorityBadgeClass(t.priority)}>
@@ -273,29 +425,29 @@ function HomePage({
                       </td>
                       <td>
                         <div className="btn-group btn-group-sm">
-                         <button
-                          type="button"
-                          className="btn"
-                          style={{
-                            backgroundColor: "#2629d9",
-                            color: "white",
-                            fontWeight: "bold",
-                            border: "1px solid white"
-                          }}
-                          onClick={() => onEditTask(t)}
-                        >
-                          Edit
-                        </button>
+                          <button
+                            type="button"
+                            className="btn"
+                            style={{
+                              backgroundColor: "#2629d9",
+                              color: "white",
+                              fontWeight: "bold",
+                              border: "1px solid white",
+                            }}
+                            onClick={() => onEditTask(t)}
+                          >
+                            Edit
+                          </button>
 
                           <button
-                             type="button"
-                          className="btn"
-                          style={{
-                            backgroundColor: "#7c0416",
-                            color: "white",
-                            fontWeight: "bold",
-                            border: "1px solid white"
-                          }}
+                            type="button"
+                            className="btn"
+                            style={{
+                              backgroundColor: "#7c0416",
+                              color: "white",
+                              fontWeight: "bold",
+                              border: "1px solid white",
+                            }}
                             onClick={() => onDeleteTask(t)}
                           >
                             Del
@@ -309,14 +461,15 @@ function HomePage({
                 {filteredTasks.length === 0 && (
                   <tr>
                     <td colSpan="9" className="text-center py-4">
-                      <strong>No tasks yet! Go to{" "}
-                      <NavLink
-                        to="/tasks"
-                        className="text-decoration-underline fw-semibold"
-                      >
-                        Add Task
-                      </NavLink>{" "}
-                      tab to add your tasks 👆
+                      <strong>
+                        No tasks yet! Go to{" "}
+                        <NavLink
+                          to="/add-task"
+                          className="text-decoration-underline fw-semibold"
+                        >
+                          Add Task
+                        </NavLink>{" "}
+                        tab to add your tasks 👆
                       </strong>
                     </td>
                   </tr>
@@ -330,16 +483,23 @@ function HomePage({
   );
 }
 
-/* Courses page: manage courses + progress */
+/* Courses page */
 function CoursesPage({
+  programs,
   courses,
   newCourse,
   setNewCourse,
   handleAddCourse,
   handleDeleteCourse,
-  handleEditCourse,   // 👈 add this
+  handleEditCourse,
   courseStats,
 }) {
+  // Map program_id -> program_name
+  const programMap = programs.reduce((acc, p) => {
+    acc[p.id] = p.name;
+    return acc;
+  }, {});
+
   return (
     <div className="row g-4 justify-content-center">
       <div className="col-lg-10 col-xl-8">
@@ -351,12 +511,36 @@ function CoursesPage({
             <form className="mb-3" onSubmit={handleAddCourse}>
               <div className="mb-2">
                 <label className="form-label small text-light">
+                  <h4>Program</h4>
+                </label>
+                <select
+                  className="form-select form-select-sm"
+                  value={newCourse.program_id}
+                  onChange={(e) =>
+                    setNewCourse({
+                      ...newCourse,
+                      program_id: e.target.value,
+                    })
+                  }
+                  required
+                >
+                  <option value="">Select program</option>
+                  {programs.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mb-2">
+                <label className="form-label small text-light">
                   <h4>Course code</h4>
                 </label>
                 <input
                   type="text"
                   className="form-control form-control-sm"
-                  placeholder="COMP228"
+                  placeholder="CS 1111-01"
                   value={newCourse.code}
                   onChange={(e) =>
                     setNewCourse({ ...newCourse, code: e.target.value })
@@ -370,7 +554,7 @@ function CoursesPage({
                 <input
                   type="text"
                   className="form-control form-control-sm"
-                  placeholder="Java Programming"
+                  placeholder="Introduction to Computer Science"
                   value={newCourse.name}
                   onChange={(e) =>
                     setNewCourse({ ...newCourse, name: e.target.value })
@@ -385,12 +569,14 @@ function CoursesPage({
             <hr />
 
             <div className="mb-2 small text-light-important">
-              <strong><h4>Total courses: {courses.length}</h4></strong>
+              <strong>
+                <h4>Total courses: {courses.length}</h4>
+              </strong>
             </div>
 
             <div>
               <div className="small fw-semibold mb-1 text-light">
-              <h5>Course list</h5>
+                <h5>Course list</h5>
               </div>
               <ul className="list-group list-group-flush small">
                 {courses.length === 0 && (
@@ -413,17 +599,25 @@ function CoursesPage({
                       className="list-group-item d-flex flex-column px-5 py-3 courses-list-item"
                     >
                       <div className="d-flex justify-content-between align-items-center">
-                        <h6><span>
-                          <span className="fw-bold">{c.code}</span>{" "}
-                          <span className="meduim fw-semibold">– {c.name}</span>
-                        </span></h6>
+                        <div>
+                          <h6 className="mb-1">
+                            <span className="fw-bold">{c.code}</span>{" "}
+                            <span className="meduim fw-semibold">
+                              – {c.name}
+                            </span>
+                          </h6>
+                          <div className="small text-muted">
+                            {programMap[c.program_id] ||
+                              "Program not set"}
+                          </div>
+                        </div>
                         <div className="d-flex gap-2">
                           <button
                             type="button"
                             className="btn btn-sm btn-success"
                             onClick={() => handleEditCourse(c)}
                           >
-                            <h7>Edit</h7>
+                            Edit
                           </button>
 
                           <button
@@ -431,10 +625,9 @@ function CoursesPage({
                             className="btn btn-sm btn-delete"
                             onClick={() => handleDeleteCourse(c.id)}
                           >
-                            <h7>Delete</h7>
+                            Delete
                           </button>
-                      </div>
-
+                        </div>
                       </div>
                       <div className="small text-muted mt-1">
                         {stats.completed}/{stats.total} tasks completed
@@ -458,8 +651,8 @@ function CoursesPage({
   );
 }
 
-/* Tasks page: add new task */
-function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
+/* Add Task page */
+function AddTaskPage({ courses, newTask, setNewTask, handleAddTask }) {
   return (
     <div className="row g-4 justify-content-center">
       <div className="col-lg-8">
@@ -500,7 +693,8 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
                   </label>
                   <input
                     type="text"
-                    className="form-control form-control-sm" placeholder="Example: Assignment 1"
+                    className="form-control form-control-sm"
+                    placeholder="Assignment 1"
                     value={newTask.title}
                     onChange={(e) =>
                       setNewTask({ ...newTask, title: e.target.value })
@@ -529,7 +723,7 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
 
                 <div className="col-md-3">
                   <label className="form-label small text-light">
-                   <h5> Due date</h5>
+                    <h5>Due date</h5>
                   </label>
                   <input
                     type="date"
@@ -581,14 +775,14 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
 
                 <div className="col-md-3">
                   <label className="form-label small text-light">
-                   <h5> Weight (%)</h5>
+                    <h5>Weight (%)</h5>
                   </label>
                   <input
                     type="number"
                     className="form-control form-control-sm"
                     min="0"
                     max="100"
-                    placeholder="Example: 20"
+                    placeholder="20"
                     value={newTask.weight}
                     onChange={(e) =>
                       setNewTask({ ...newTask, weight: e.target.value })
@@ -596,37 +790,17 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
                   />
                 </div>
 
-                <div className="col-md-3">
-                  <label className="form-label small text-light">
-                  <h5>  Is Submitted?</h5>
-                  </label>
-                  <select
-                    className="form-select form-select-sm is-submitted-select"
-                    value={newTask.is_submitted}
-                    onChange={(e) =>
-                      setNewTask({
-                        ...newTask,
-                        is_submitted: e.target.value,
-                      })
-                    }
-                  >
-                    <option>No</option>
-                    <option>Yes</option>
-                  </select>
-                </div>
-
                 <div className="col-md-9">
                   <label className="form-label small text-light">
-                    <h5> Notes</h5>
+                    <h5>Notes</h5>
                   </label>
                   <textarea
-                    className="form-control form-control-sm"
+                    className="form-control form-control-sm notes"
                     rows="2"
                     value={newTask.notes}
                     onChange={(e) =>
                       setNewTask({ ...newTask, notes: e.target.value })
                     }
-                  
                   />
                 </div>
 
@@ -650,13 +824,27 @@ function TasksPage({ courses, newTask, setNewTask, handleAddTask }) {
 /* ---------- Main App ---------- */
 
 function App() {
+  const [programs, setPrograms] = useState([]);
+  const [newProgram, setNewProgram] = useState({
+    name: "",
+    college: "",
+    semester: "",
+  });
+
   const [courses, setCourses] = useState([]);
   const [tasks, setTasks] = useState([]);
+
+  const [selectedProgramFilter, setSelectedProgramFilter] = useState("");
   const [selectedCourseId, setSelectedCourseId] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [todayStr, setTodayStr] = useState("");
 
-  const [newCourse, setNewCourse] = useState({ code: "", name: "" });
+  const [newCourse, setNewCourse] = useState({
+    program_id: "",
+    code: "",
+    name: "",
+  });
+
   const [newTask, setNewTask] = useState({
     course_id: "",
     title: "",
@@ -679,26 +867,29 @@ function App() {
     });
     setTodayStr(formatted);
 
+    fetchPrograms();
     fetchCourses();
     fetchTasks();
   }, []);
+
+  const fetchPrograms = async () => {
+    const res = await axios.get(`${API_BASE}/programs`);
+    setPrograms(res.data);
+  };
 
   const fetchCourses = async () => {
     const res = await axios.get(`${API_BASE}/courses`);
     setCourses(res.data);
   };
 
-  const fetchTasks = async (course_id) => {
-    const params = course_id ? { course_id } : {};
-    const res = await axios.get(`${API_BASE}/tasks`, { params });
-
-    // sort by due date (soonest first)
+  const fetchTasks = async () => {
+    const res = await axios.get(`${API_BASE}/tasks`);
+    // sort by due date
     const sorted = [...res.data].sort((a, b) => {
       if (!a.due_date) return 1;
       if (!b.due_date) return -1;
       return new Date(a.due_date) - new Date(b.due_date);
     });
-
     setTasks(sorted);
   };
 
@@ -737,19 +928,131 @@ function App() {
     return acc;
   }, {});
 
-  /* ---------- CRUD with SweetAlert toasts ---------- */
+  /* ---------- CRUD: Programs ---------- */
 
-  const handleAddCourse = async (e) => {
+  const handleAddProgram = async (e) => {
     e.preventDefault();
-    if (!newCourse.code || !newCourse.name) {
-      Toast.fire({ icon: "error", title: "Enter code & name" });
+    if (!newProgram.name) {
+      Toast.fire({ icon: "error", title: "Program name required" });
       return;
     }
 
     try {
-      const res = await axios.post(`${API_BASE}/courses`, newCourse);
+      const res = await axios.post(`${API_BASE}/programs`, newProgram);
+      setPrograms((prev) => [...prev, res.data]);
+      setNewProgram({ name: "", college: "", semester: "" });
+      Toast.fire({ icon: "success", title: "Program added" });
+    } catch {
+      Toast.fire({ icon: "error", title: "Failed to add program" });
+    }
+  };
+
+  const handleEditProgram = async (program) => {
+    const { value: formValues } = await Swal.fire({
+      title: "Edit Program",
+      html: `
+        <input id="swal-program-name" class="swal2-input" placeholder="Program name" value="${
+          program.name
+        }">
+        <input id="swal-program-college" class="swal2-input" placeholder="College" value="${
+          program.college || ""
+        }">
+        <input id="swal-program-semester" class="swal2-input" placeholder="Semester" value="${
+          program.semester || ""
+        }">
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#22c55e",
+      focusConfirm: false,
+      preConfirm: () => {
+        const name = document
+          .getElementById("swal-program-name")
+          .value.trim();
+        const college = document
+          .getElementById("swal-program-college")
+          .value.trim();
+        const semester = document
+          .getElementById("swal-program-semester")
+          .value.trim();
+
+        if (!name) {
+          Swal.showValidationMessage("Program name is required");
+          return;
+        }
+
+        return { name, college, semester };
+      },
+    });
+
+    if (!formValues) return;
+
+    const { name, college, semester } = formValues;
+
+    try {
+      await axios.put(`${API_BASE}/programs/${program.id}`, {
+        name,
+        college,
+        semester,
+      });
+      await fetchPrograms();
+      Toast.fire({ icon: "success", title: "Program updated" });
+    } catch {
+      Toast.fire({ icon: "error", title: "Failed to update program" });
+    }
+  };
+
+  const handleDeleteProgram = async (id) => {
+    const program = programs.find((p) => p.id === id);
+    const label = program ? program.name : "this program";
+
+    const result = await Swal.fire({
+      title: "Delete program?",
+      html: `<strong>${label}</strong><br><small>This will remove its courses and tasks.</small>`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#dc3545",
+      cancelButtonColor: "#6c757d",
+      focusCancel: true,
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await axios.delete(`${API_BASE}/programs/${id}`);
+      await fetchPrograms();
+      await fetchCourses();
+      await fetchTasks();
+      Toast.fire({ icon: "info", title: "Program deleted" });
+    } catch {
+      Toast.fire({ icon: "error", title: "Failed to delete program" });
+    }
+  };
+
+  /* ---------- CRUD: Courses ---------- */
+
+  const handleAddCourse = async (e) => {
+    e.preventDefault();
+    if (!newCourse.program_id || !newCourse.code || !newCourse.name) {
+      Toast.fire({
+        icon: "error",
+        title: "Select program and enter code & name",
+      });
+      return;
+    }
+
+    try {
+      const payload = {
+        program_id: Number(newCourse.program_id),
+        code: newCourse.code,
+        name: newCourse.name,
+      };
+      const res = await axios.post(`${API_BASE}/courses`, payload);
       setCourses((prev) => [...prev, res.data]);
-      setNewCourse({ code: "", name: "" });
+      setNewCourse({ program_id: "", code: "", name: "" });
       Toast.fire({ icon: "success", title: "Course added" });
     } catch {
       Toast.fire({ icon: "error", title: "Failed to add course" });
@@ -777,14 +1080,7 @@ function App() {
     try {
       await axios.delete(`${API_BASE}/courses/${id}`);
       await fetchCourses();
-
-      if (String(selectedCourseId) === String(id)) {
-        setSelectedCourseId("");
-        fetchTasks();
-      } else {
-        fetchTasks(selectedCourseId || null);
-      }
-
+      await fetchTasks();
       Toast.fire({ icon: "info", title: "Course deleted" });
     } catch {
       Toast.fire({ icon: "error", title: "Failed to delete course" });
@@ -792,47 +1088,80 @@ function App() {
   };
 
   const handleEditCourse = async (course) => {
-  const { value: formValues } = await Swal.fire({
-    title: "Edit Course",
-    html: `
-      <input id="swal-course-code" class="swal2-input" placeholder="Course code" value="${course.code}">
-      <input id="swal-course-name" class="swal2-input" placeholder="Course name" value="${course.name}">
-    `,
-    showCancelButton: true,
-    confirmButtonText: "Save",
-    cancelButtonText: "Cancel",
-    confirmButtonColor: "#28a745",   // green Save
-    focusConfirm: false,
-    preConfirm: () => {
-      const code = document.getElementById("swal-course-code").value.trim();
-      const name = document.getElementById("swal-course-name").value.trim();
+    const programOptionsHtml = programs
+      .map(
+        (p) => `
+      <option value="${p.id}" ${
+          p.id === course.program_id ? "selected" : ""
+        }>${p.name}</option>
+    `
+      )
+      .join("");
 
-      if (!code || !name) {
-        Swal.showValidationMessage("Code and name are required");
-        return;
-      }
-      return { code, name };
+    const { value: formValues } = await Swal.fire({
+      title: "Edit Course",
+      html: `
+        <select id="swal-course-program" class="swal2-select">
+          <option value="">Select program</option>
+          ${programOptionsHtml}
+        </select>
+        <input id="swal-course-code" class="swal2-input" placeholder="Course code" value="${
+          course.code
+        }">
+        <input id="swal-course-name" class="swal2-input" placeholder="Course name" value="${
+          course.name
+        }">
+      `,
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#28a745",
+      focusConfirm: false,
+      preConfirm: () => {
+        const program_id = document.getElementById(
+          "swal-course-program"
+        ).value;
+        const code = document
+          .getElementById("swal-course-code")
+          .value.trim();
+        const name = document
+          .getElementById("swal-course-name")
+          .value.trim();
+
+        if (!program_id || !code || !name) {
+          Swal.showValidationMessage(
+            "Program, code, and name are required"
+          );
+          return;
+        }
+        return {
+          program_id: Number(program_id),
+          code,
+          name,
+        };
+      },
+    });
+
+    if (!formValues) return;
+
+    const { program_id, code, name } = formValues;
+
+    try {
+      await axios.put(`${API_BASE}/courses/${course.id}`, {
+        program_id,
+        code,
+        name,
+      });
+
+      await fetchCourses();
+      await fetchTasks();
+      Toast.fire({ icon: "success", title: "Course updated" });
+    } catch {
+      Toast.fire({ icon: "error", title: "Failed to update course" });
     }
-  });
+  };
 
-  if (!formValues) return;
-
-  const { code, name } = formValues;
-
-  // Update on server
-  try {
-    await axios.put(`${API_BASE}/courses/${course.id}`, { code, name });
-
-    // Refresh
-    fetchCourses();
-    fetchTasks(selectedCourseId || null);
-
-    Toast.fire({ icon: "success", title: "Course updated" });
-  } catch {
-    Toast.fire({ icon: "error", title: "Failed to update course" });
-  }
-};
-
+  /* ---------- CRUD: Tasks ---------- */
 
   const handleAddTask = async (e) => {
     e.preventDefault();
@@ -845,6 +1174,7 @@ function App() {
       const { is_submitted, ...rest } = newTask;
       const payload = {
         ...rest,
+        course_id: Number(newTask.course_id),
         weight: newTask.weight ? Number(newTask.weight) : null,
         submission_link: is_submitted,
       };
@@ -861,23 +1191,13 @@ function App() {
         is_submitted: "No",
         notes: "",
       });
-      fetchTasks(selectedCourseId || null);
+      await fetchTasks();
 
       Toast.fire({ icon: "success", title: "Task added" });
     } catch {
       Toast.fire({ icon: "error", title: "Failed to add task" });
     }
   };
-
-  const handleCourseFilterChange = (value) => {
-    setSelectedCourseId(value);
-    fetchTasks(value || null);
-  };
-
-  const filteredTasks = tasks.filter((task) => {
-    if (statusFilter === "all") return true;
-    return task.status === statusFilter;
-  });
 
   const updateTaskOnServer = async (taskId, updatedFields) => {
     const task = tasks.find((t) => t.id === taskId);
@@ -898,7 +1218,7 @@ function App() {
 
     try {
       await axios.put(`${API_BASE}/tasks/${taskId}`, payload);
-      fetchTasks(selectedCourseId || null);
+      await fetchTasks();
       Toast.fire({ icon: "success", title: "Task updated" });
     } catch {
       Toast.fire({ icon: "error", title: "Failed to update task" });
@@ -952,12 +1272,18 @@ function App() {
     const { value: formValues } = await Swal.fire({
       title: "Edit task",
       html: `
-        <input id="swal-input-title" class="swal2-input" placeholder="Title" value="${task.title || ""}">
+        <input id="swal-input-title" class="swal2-input" placeholder="Title" value="${
+          task.title || ""
+        }">
         <select id="swal-input-type" class="swal2-select">
           <option ${task.type === "Quiz" ? "selected" : ""}>Quiz</option>
-          <option ${task.type === "Assignment" ? "selected" : ""}>Assignment</option>
+          <option ${
+            task.type === "Assignment" ? "selected" : ""
+          }>Assignment</option>
           <option ${task.type === "Exam" ? "selected" : ""}>Exam</option>
-          <option ${task.type === "Group Project" ? "selected" : ""}>Group Project</option>
+          <option ${
+            task.type === "Group Project" ? "selected" : ""
+          }>Group Project</option>
         </select>
         <input id="swal-input-due" type="date" class="swal2-input" value="${
           task.due_date || ""
@@ -985,8 +1311,8 @@ function App() {
       },
       customClass: {
         popup: "swal-edit-task-popup",
-        confirmButton: "swal-save-btn",   // <-- ADD THIS
-        cancelButton: "swal-cancel-btn",  // optional
+        confirmButton: "swal-save-btn",
+        cancelButton: "swal-cancel-btn",
       },
     });
 
@@ -1022,20 +1348,48 @@ function App() {
 
     try {
       await axios.delete(`${API_BASE}/tasks/${task.id}`);
-      fetchTasks(selectedCourseId || null);
+      await fetchTasks();
       Toast.fire({ icon: "info", title: "Task deleted" });
     } catch {
       Toast.fire({ icon: "error", title: "Failed to delete task" });
     }
   };
 
+  /* Filters for tasks (program + course + status) */
+  const handleProgramFilterChange = (value) => {
+    setSelectedProgramFilter(value);
+  };
+
+  const handleCourseFilterChange = (value) => {
+    setSelectedCourseId(value);
+  };
+
+  const filteredTasks = tasks.filter((task) => {
+    if (
+      selectedProgramFilter &&
+      String(task.program_id) !== String(selectedProgramFilter)
+    ) {
+      return false;
+    }
+    if (
+      selectedCourseId &&
+      String(task.course_id) !== String(selectedCourseId)
+    ) {
+      return false;
+    }
+    if (statusFilter !== "all" && task.status !== statusFilter) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <div className="min-vh-100 d-flex justify-content-center align-items-start py-4 app-bg">
       <div className="container main-shell p-3">
-        {/* Top bar + nav (separate from card) */}
+        {/* Top bar + nav */}
         <header className="mb-3">
           <div className="d-flex justify-content-between align-items-center mb-3">
-           <span
+            <span
               className="fw-bold fs-4"
               style={{ color: "#FFD700" }} // gold
             >
@@ -1046,21 +1400,22 @@ function App() {
               <span role="img" aria-label="calendar">
                 📅
               </span>
-              <span><strong className="fs-5">{todayStr}</strong></span>
+              <span>
+                <strong className="fs-5">{todayStr}</strong>
+              </span>
             </span>
           </div>
 
-          {/* pill-style nav */}
+          {/* Tabs: Programs, Courses, Tasks, Add Task */}
           <ul className="nav justify-content-center gap-3 custom-nav-pills">
             <li className="nav-item">
               <NavLink
-                to="/"
-                end
+                to="/programs"
                 className={({ isActive }) =>
                   "nav-link nav-pill " + (isActive ? "nav-pill-active" : "")
                 }
               >
-                Tasks
+                Programs
               </NavLink>
             </li>
             <li className="nav-item">
@@ -1080,6 +1435,16 @@ function App() {
                   "nav-link nav-pill " + (isActive ? "nav-pill-active" : "")
                 }
               >
+                Tasks
+              </NavLink>
+            </li>
+            <li className="nav-item">
+              <NavLink
+                to="/add-task"
+                className={({ isActive }) =>
+                  "nav-link nav-pill " + (isActive ? "nav-pill-active" : "")
+                }
+              >
                 Add Task
               </NavLink>
             </li>
@@ -1089,8 +1454,37 @@ function App() {
         {/* Main content card */}
         <div className="main-card mt-3">
           <Routes>
+            <Route path="/" element={<Navigate to="/tasks" replace />} />
             <Route
-              path="/"
+              path="/programs"
+              element={
+                <ProgramsPage
+                  programs={programs}
+                  newProgram={newProgram}
+                  setNewProgram={setNewProgram}
+                  handleAddProgram={handleAddProgram}
+                  handleEditProgram={handleEditProgram}
+                  handleDeleteProgram={handleDeleteProgram}
+                />
+              }
+            />
+            <Route
+              path="/courses"
+              element={
+                <CoursesPage
+                  programs={programs}
+                  courses={courses}
+                  newCourse={newCourse}
+                  setNewCourse={setNewCourse}
+                  handleAddCourse={handleAddCourse}
+                  handleDeleteCourse={handleDeleteCourse}
+                  handleEditCourse={handleEditCourse}
+                  courseStats={courseStats}
+                />
+              }
+            />
+            <Route
+              path="/tasks"
               element={
                 <HomePage
                   filteredTasks={filteredTasks}
@@ -1099,6 +1493,9 @@ function App() {
                   onStatusClick={handleStatusClick}
                   handleRowSubmittedChange={handleRowSubmittedChange}
                   courses={courses}
+                  programs={programs}
+                  selectedProgramFilter={selectedProgramFilter}
+                  onProgramFilterChange={handleProgramFilterChange}
                   selectedCourseId={selectedCourseId}
                   onCourseFilterChange={handleCourseFilterChange}
                   overdueCount={overdueCount}
@@ -1110,25 +1507,10 @@ function App() {
                 />
               }
             />
-           <Route
-            path="/courses"
-            element={
-              <CoursesPage
-                courses={courses}
-                newCourse={newCourse}
-                setNewCourse={setNewCourse}
-                handleAddCourse={handleAddCourse}
-                handleDeleteCourse={handleDeleteCourse}
-                handleEditCourse={handleEditCourse} 
-                courseStats={courseStats}
-              />
-            }
-          />
-
             <Route
-              path="/tasks"
+              path="/add-task"
               element={
-                <TasksPage
+                <AddTaskPage
                   courses={courses}
                   newTask={newTask}
                   setNewTask={setNewTask}
@@ -1139,7 +1521,9 @@ function App() {
           </Routes>
 
           <div className="text-center small mt-4 footer-text">
-          <strong><em>Nawriz Ibrahim © 2025</em></strong>
+            <strong>
+              <em>Nawriz Ibrahim © 2025</em>
+            </strong>
           </div>
         </div>
       </div>
