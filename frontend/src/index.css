@@ -10,7 +10,7 @@ body {
 
 /* Centered shell */
 .main-shell {
-  max-width: 1400px;
+  max-width: 1700px;
 }
 
 /* Dark main content card */
@@ -178,10 +178,14 @@ body {
 .swal-save-btn {
   background-color: #15803d !important; /* green */
   color: white !important;
-  font-weight: bold !important;
-  border: none !important;
-  padding: 8px 20px !important;
-  border-radius: 6px !important;
+  width: 80px;              /* equal width */
+  height: 35px;             /* equal height */
+  border-radius: 999px;     /* fully rounded (pill) */
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 .swal-save-btn:hover {
@@ -190,10 +194,14 @@ body {
 .swal-cancel-btn {
   background-color: #b91c1c !important; /* red */
   color: white !important;
-  font-weight: bold !important;
-  border: none !important;
-  padding: 8px 20px !important;
-  border-radius: 6px !important;
+  width: 80px;              /* equal width */
+  height: 35px;             /* equal height */
+  border-radius: 999px;     /* fully rounded (pill) */
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 .swal-cancel-btn:hover {
@@ -215,3 +223,46 @@ body {
 .form-select.form-select-sm.course-select, .form-control.form-control-sm.course-title{
   width:140% !important;
 }
+/* Force row colors on Bootstrap tables (apply to cells) */
+.table-dark-mode tbody tr.row-notcompleted > td,
+.table-dark-mode tbody tr.row-notcompleted > th {
+  background-color: darkred!important;
+  color: #ffffff !important;
+}
+
+.table-dark-mode tbody tr.row-inprogress > td,
+.table-dark-mode tbody tr.row-inprogress > th {
+  background-color: rgba(229, 231, 235, 0.18) !important;
+  color: #ffffff !important;
+}
+
+.table-dark-mode tbody tr.row-completed > td,
+.table-dark-mode tbody tr.row-completed > th {
+  background-color: #16a34a !important;
+  color: #ffffff !important;
+}
+
+.btn.btn-sm.statusDropDown{
+  color: white;
+  font-weight: bolder;
+  text-align: left;
+}
+.task-action-btn {
+  width: 70px;              /* equal width */
+  height: 36px;             /* equal height */
+  border-radius: 999px;     /* fully rounded (pill) */
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.task-action-btn:hover {
+  transform: translateY(-1px);
+  transition: all 0.15s ease-in-out;
+}
+.task-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
