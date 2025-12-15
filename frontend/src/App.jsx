@@ -328,13 +328,13 @@ function HomePage({
             <table className="table table-striped table-hover align-middle mb-0 table-dark-mode">
               <thead className="table-head-dark">
                 <tr>
-                  <th style={{ width: "50%" }}>Course / Program</th>
-                  <th style={{ width: "20%" }}>Title</th>
-                  <th style={{ width: "10%" }}>Type</th>
-                  <th style={{ width: "16%" }}>Due Date</th>
-                  <th style={{ width: "10%" }}>Status</th>
-                  <th style={{ width: "18%" }}>Notes</th>
-                  <th style={{ width: "7%" }}>Marks</th>
+                  <th style={{ width: "30%" }}>Course / Program</th>
+                  <th style={{ width: "10%" }}>Title</th>
+                  <th style={{ width: "5%" }}>Type</th>
+                  <th style={{ width: "10%" }}>Due Date</th>
+                  <th style={{ width: "8%" }}>Status</th>
+                  <th style={{ width: "35%" }}>Notes</th>
+                  <th style={{ width: "5%" }}>Marks</th>
                   <th style={{ width: "10%" }}>Actions</th>
                 </tr>
               </thead>
@@ -392,7 +392,8 @@ function HomePage({
                       })
                     }
                   >
-                    {t.notes ? t.notes.slice(0, 5) + "…" : "-"}
+                    {/* {t.notes ? t.notes.slice(0, 5) + "…" : "-"} */}
+                    {t.notes}
                   </td>
 
 
@@ -717,7 +718,7 @@ function AddTaskPage({ courses, newTask, setNewTask, handleAddTask }) {
                   </label>
                   <input
                     type="number"
-                    className="form-control form-control-sm text-light"
+                    className="form-control form-control-sm"
                     min="0"
                     max="100"
                     placeholder="Example: 20"
