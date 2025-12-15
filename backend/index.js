@@ -6,16 +6,17 @@ const path = require("path");
 const app = express();
 const PORT = 4000;
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// DB setup (iamonit.db in the root of the project)
+// DB setup
 const dbPath = path.join(__dirname, "iamonit.db");
 const db = new sqlite3.Database(dbPath);
 
-// Create tables if not exist
+// Enable FK constraints
 db.serialize(() => {
+  db.run("PRAGMA foreign_keys = ON;");
+
   // Programs
   db.run(`
     CREATE TABLE IF NOT EXISTS programs (
@@ -26,87 +27,74 @@ db.serialize(() => {
     )
   `);
 
-  // Courses (each course belongs to one program)
+  // Courses (with program_id)
   db.run(`
     CREATE TABLE IF NOT EXISTS courses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       program_id INTEGER NOT NULL,
       code TEXT NOT NULL,
       name TEXT NOT NULL,
-      FOREIGN KEY (program_id) REFERENCES programs(id)
+      FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE CASCADE
     )
   `);
 
-  // Tasks (each task belongs to one course)
+  // Tasks
   db.run(`
     CREATE TABLE IF NOT EXISTS tasks (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       course_id INTEGER NOT NULL,
       title TEXT NOT NULL,
-      type TEXT NOT NULL,          -- Quiz / Assignment / Exam / Group Project
-      due_date TEXT NOT NULL,      -- "2025-12-15"
-      status TEXT NOT NULL,        -- Completed / In progress / Not Completed
-      priority TEXT,               -- High / Medium / Low
-      weight REAL,                 -- percentage
+      type TEXT NOT NULL,
+      due_date TEXT NOT NULL,
+      status TEXT NOT NULL,
+      priority TEXT,
+      weight REAL,
       submission_link TEXT,
       notes TEXT,
-      FOREIGN KEY (course_id) REFERENCES courses(id)
+      FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
     )
   `);
 });
 
-/* ===================== PROGRAMS ROUTES ===================== */
+/* -------------------- PROGRAMS -------------------- */
 
 // Get all programs
 app.get("/api/programs", (req, res) => {
-  db.all(
-    "SELECT * FROM programs ORDER BY name ASC",
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(rows);
-    }
-  );
+  db.all("SELECT * FROM programs ORDER BY id DESC", (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
 });
 
-// Add a new program
+// Add program
 app.post("/api/programs", (req, res) => {
   const { name, college, semester } = req.body;
-  if (!name) {
-    return res.status(400).json({ error: "Program name is required" });
-  }
+  if (!name) return res.status(400).json({ error: "name is required" });
 
   db.run(
-    "INSERT INTO programs (name, college, semester) VALUES (?, ?, ?)",
+    `INSERT INTO programs (name, college, semester) VALUES (?, ?, ?)`,
     [name, college || null, semester || null],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
       res.status(201).json({
         id: this.lastID,
         name,
-        college: college || null,
-        semester: semester || null,
+        college: college || "",
+        semester: semester || "",
       });
     }
   );
 });
 
-// Update a program
+// Update program
 app.put("/api/programs/:id", (req, res) => {
   const { id } = req.params;
   const { name, college, semester } = req.body;
 
-  if (!name) {
-    return res
-      .status(400)
-      .json({ error: "Program name is required" });
-  }
+  if (!name) return res.status(400).json({ error: "name is required" });
 
   db.run(
-    `
-    UPDATE programs
-    SET name = ?, college = ?, semester = ?
-    WHERE id = ?
-  `,
+    `UPDATE programs SET name = ?, college = ?, semester = ? WHERE id = ?`,
     [name, college || null, semester || null, id],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
@@ -115,97 +103,64 @@ app.put("/api/programs/:id", (req, res) => {
   );
 });
 
-// Delete a program (and its courses & tasks)
+// Delete program (cascades courses + tasks via FK)
 app.delete("/api/programs/:id", (req, res) => {
   const { id } = req.params;
 
-  db.serialize(() => {
-    // Delete tasks for all courses in this program
-    db.run(
-      `
-      DELETE FROM tasks
-      WHERE course_id IN (
-        SELECT id FROM courses WHERE program_id = ?
-      )
-    `,
-      [id],
-      function (err) {
-        if (err) return res.status(500).json({ error: err.message });
-
-        // Delete the courses themselves
-        db.run(
-          "DELETE FROM courses WHERE program_id = ?",
-          [id],
-          function (err2) {
-            if (err2)
-              return res
-                .status(500)
-                .json({ error: err2.message });
-
-            // Finally delete the program
-            db.run(
-              "DELETE FROM programs WHERE id = ?",
-              [id],
-              function (err3) {
-                if (err3)
-                  return res
-                    .status(500)
-                    .json({ error: err3.message });
-                res.json({ deleted: this.changes });
-              }
-            );
-          }
-        );
-      }
-    );
+  db.run(`DELETE FROM programs WHERE id = ?`, [id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ deleted: this.changes });
   });
 });
 
-/* ===================== COURSES ROUTES ===================== */
+/* -------------------- COURSES -------------------- */
 
-// Get all courses (optionally filter by program_id)
+// Get all courses (with program_name)
 app.get("/api/courses", (req, res) => {
-  const { program_id } = req.query;
-  let sql = `
-    SELECT courses.*, programs.name AS program_name
-    FROM courses
-    LEFT JOIN programs ON courses.program_id = programs.id
+  const sql = `
+    SELECT
+      c.id,
+      c.program_id,
+      c.code,
+      c.name,
+      p.name AS program_name
+    FROM courses c
+    JOIN programs p ON p.id = c.program_id
+    ORDER BY p.name ASC, c.code ASC
   `;
-  const params = [];
-
-  if (program_id) {
-    sql += " WHERE courses.program_id = ?";
-    params.push(program_id);
-  }
-
-  sql += " ORDER BY courses.code ASC";
-
-  db.all(sql, params, (err, rows) => {
+  db.all(sql, (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
   });
 });
 
-// Add a new course
+// Add course
 app.post("/api/courses", (req, res) => {
   const { program_id, code, name } = req.body;
   if (!program_id || !code || !name) {
-    return res
-      .status(400)
-      .json({ error: "program_id, code, and name are required" });
+    return res.status(400).json({ error: "program_id, code, name are required" });
   }
 
   db.run(
-    "INSERT INTO courses (program_id, code, name) VALUES (?, ?, ?)",
+    `INSERT INTO courses (program_id, code, name) VALUES (?, ?, ?)`,
     [program_id, code, name],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({
-        id: this.lastID,
-        program_id,
-        code,
-        name,
-      });
+
+      // Return row with program_name
+      db.get(
+        `
+        SELECT c.id, c.program_id, c.code, c.name, p.name AS program_name
+        FROM courses c
+        JOIN programs p ON p.id = c.program_id
+        WHERE c.id = ?
+        `,
+        [this.lastID],
+        (err2, row) => {
+          if (err2) return res.status(500).json({ error: err2.message });
+          res.status(201).json(row);
+        }
+      );
     }
   );
 });
@@ -216,17 +171,11 @@ app.put("/api/courses/:id", (req, res) => {
   const { program_id, code, name } = req.body;
 
   if (!program_id || !code || !name) {
-    return res
-      .status(400)
-      .json({ error: "program_id, code, and name are required" });
+    return res.status(400).json({ error: "program_id, code, name are required" });
   }
 
   db.run(
-    `
-    UPDATE courses
-    SET program_id = ?, code = ?, name = ?
-    WHERE id = ?
-  `,
+    `UPDATE courses SET program_id = ?, code = ?, name = ? WHERE id = ?`,
     [program_id, code, name, id],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
@@ -235,56 +184,48 @@ app.put("/api/courses/:id", (req, res) => {
   );
 });
 
-// Delete a course (and its tasks)
+// Delete course (cascades tasks via FK)
 app.delete("/api/courses/:id", (req, res) => {
   const { id } = req.params;
 
-  db.run("DELETE FROM tasks WHERE course_id = ?", [id], function (err) {
+  db.run(`DELETE FROM courses WHERE id = ?`, [id], function (err) {
     if (err) return res.status(500).json({ error: err.message });
-
-    db.run("DELETE FROM courses WHERE id = ?", [id], function (err2) {
-      if (err2) return res.status(500).json({ error: err2.message });
-      res.json({ deleted: this.changes });
-    });
+    res.json({ deleted: this.changes });
   });
 });
 
-/* ===================== TASKS ROUTES ===================== */
+/* -------------------- TASKS -------------------- */
 
-// Get all tasks (optionally filter by course_id or program_id)
+// Get tasks (optionally filter by course_id OR program_id)
 app.get("/api/tasks", (req, res) => {
   const { course_id, program_id } = req.query;
 
   let sql = `
-    SELECT 
-      tasks.*,
-      courses.code AS course_code,
-      courses.name AS course_name,
-      programs.id AS program_id,
-      programs.name AS program_name
-    FROM tasks
-    JOIN courses ON tasks.course_id = courses.id
-    LEFT JOIN programs ON courses.program_id = programs.id
+    SELECT
+      t.*,
+      c.code AS course_code,
+      c.name AS course_name,
+      c.program_id AS program_id,
+      p.name AS program_name
+    FROM tasks t
+    JOIN courses c ON c.id = t.course_id
+    JOIN programs p ON p.id = c.program_id
   `;
 
   const params = [];
-  const whereClauses = [];
+  const where = [];
 
   if (course_id) {
-    whereClauses.push("tasks.course_id = ?");
+    where.push("t.course_id = ?");
     params.push(course_id);
   }
-
   if (program_id) {
-    whereClauses.push("courses.program_id = ?");
+    where.push("c.program_id = ?");
     params.push(program_id);
   }
+  if (where.length) sql += " WHERE " + where.join(" AND ");
 
-  if (whereClauses.length > 0) {
-    sql += " WHERE " + whereClauses.join(" AND ");
-  }
-
-  sql += " ORDER BY tasks.due_date ASC";
+  sql += " ORDER BY t.due_date ASC";
 
   db.all(sql, params, (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -292,7 +233,7 @@ app.get("/api/tasks", (req, res) => {
   });
 });
 
-// Add a new task
+// Add task
 app.post("/api/tasks", (req, res) => {
   const {
     course_id,
@@ -312,10 +253,10 @@ app.post("/api/tasks", (req, res) => {
 
   db.run(
     `
-    INSERT INTO tasks 
+    INSERT INTO tasks
     (course_id, title, type, due_date, status, priority, weight, submission_link, notes)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `,
+    `,
     [
       course_id,
       title,
@@ -329,18 +270,7 @@ app.post("/api/tasks", (req, res) => {
     ],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
-      res.status(201).json({
-        id: this.lastID,
-        course_id,
-        title,
-        type,
-        due_date,
-        status,
-        priority,
-        weight,
-        submission_link,
-        notes,
-      });
+      res.status(201).json({ id: this.lastID });
     }
   );
 });
@@ -363,20 +293,20 @@ app.put("/api/tasks/:id", (req, res) => {
   db.run(
     `
     UPDATE tasks
-    SET course_id = ?, title = ?, type = ?, due_date = ?, status = ?, 
+    SET course_id = ?, title = ?, type = ?, due_date = ?, status = ?,
         priority = ?, weight = ?, submission_link = ?, notes = ?
     WHERE id = ?
-  `,
+    `,
     [
       course_id,
       title,
       type,
       due_date,
       status,
-      priority,
-      weight,
-      submission_link,
-      notes,
+      priority || null,
+      weight || null,
+      submission_link || null,
+      notes || null,
       id,
     ],
     function (err) {
@@ -390,13 +320,12 @@ app.put("/api/tasks/:id", (req, res) => {
 app.delete("/api/tasks/:id", (req, res) => {
   const { id } = req.params;
 
-  db.run("DELETE FROM tasks WHERE id = ?", id, function (err) {
+  db.run("DELETE FROM tasks WHERE id = ?", [id], function (err) {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ deleted: this.changes });
   });
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
 });
